@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-import_deck.py — Import Moxfield-exported decklists into the local decks directory.
+import_deck.py — Import decklists into the local decks directory.
+
+Supports:
+  - Moxfield plain text export
+  - Deckstats plain text export
 
 Watches the `import/` folder. All .txt files found there are imported, then deleted.
 
@@ -34,18 +38,21 @@ def slugify(name: str) -> str:
     return name.strip("-")
 
 
-def strip_moxfield_timestamp(stem: str) -> str:
-    """Remove trailing -YYYYMMDD-HHMMSS from a filename stem if present."""
-    return re.sub(r"-\d{8}-\d{6}$", "", stem)
+def deck_slug_from_filename(stem: str) -> str:
+    """Derive a slug from a filename stem, stripping Moxfield timestamps if present."""
+    stem = re.sub(r"-\d{8}-\d{6}$", "", stem)
+    return slugify(stem)
 
 
-def parse_moxfield_txt(src: Path) -> tuple[list[str], list[str]]:
+def is_deckstats(text: str) -> bool:
+    return bool(re.search(r"^(Main|Sideboard)\s*$", text, re.MULTILINE))
+
+
+def parse_moxfield(text: str) -> tuple[list[str], list[str]]:
     """
-    Parse a Moxfield plain text export.
+    Moxfield format: flat card list, commander(s) after final blank line.
     Returns (mainboard_lines, commander_lines).
-    Cards after the last blank line are treated as commanders.
     """
-    text = src.read_text(encoding="utf-8")
     sections = re.split(r"\n\s*\n", text.strip())
 
     if len(sections) == 1:
@@ -54,6 +61,51 @@ def parse_moxfield_txt(src: Path) -> tuple[list[str], list[str]]:
     commanders = [l for l in sections[-1].splitlines() if l.strip()]
     mainboard = [l for s in sections[:-1] for l in s.splitlines() if l.strip()]
     return mainboard, commanders
+
+
+def parse_deckstats(text: str) -> tuple[list[str], list[str]]:
+    """
+    Deckstats format:
+      Main
+      1 Card Name
+      ...
+
+      Sideboard
+      SB: 1 Commander Name # !Commander
+    Returns (mainboard_lines, commander_lines) in plain `N Card Name` format.
+    """
+    mainboard: list[str] = []
+    commanders: list[str] = []
+    section = None
+
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line == "Main":
+            section = "main"
+            continue
+        if line == "Sideboard":
+            section = "sideboard"
+            continue
+
+        if section == "main":
+            mainboard.append(line)
+        elif section == "sideboard":
+            # Strip "SB: " prefix and any "# ..." annotation
+            card = re.sub(r"^SB:\s*", "", line)
+            card = re.sub(r"\s*#.*$", "", card).strip()
+            if card:
+                commanders.append(card)
+
+    return mainboard, commanders
+
+
+def parse_decklist(src: Path) -> tuple[list[str], list[str]]:
+    text = src.read_text(encoding="utf-8")
+    if is_deckstats(text):
+        return parse_deckstats(text)
+    return parse_moxfield(text)
 
 
 def to_forge_dck(slug: str, mainboard: list[str], commanders: list[str]) -> str:
@@ -71,15 +123,23 @@ def to_forge_dck(slug: str, mainboard: list[str], commanders: list[str]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def to_moxfield_txt(mainboard: list[str], commanders: list[str]) -> str:
+    """Format a deck as Moxfield-compatible plain text."""
+    parts = ["\n".join(mainboard)]
+    if commanders:
+        parts.append("\n".join(commanders))
+    return "\n\n".join(parts) + "\n"
+
+
 def import_deck(src: Path, deck_name: str | None = None) -> None:
-    slug = slugify(deck_name) if deck_name else strip_moxfield_timestamp(src.stem)
-    mainboard, commanders = parse_moxfield_txt(src)
+    slug = slugify(deck_name) if deck_name else deck_slug_from_filename(src.stem)
+    mainboard, commanders = parse_decklist(src)
 
     dest_dir = DECKS_DIR / slug
     dest_dir.mkdir(parents=True, exist_ok=True)
 
     txt_dest = dest_dir / "deck.txt"
-    shutil.copy2(src, txt_dest)
+    txt_dest.write_text(to_moxfield_txt(mainboard, commanders), encoding="utf-8")
 
     dck_content = to_forge_dck(slug, mainboard, commanders)
     dck_dest = dest_dir / "deck.dck"
