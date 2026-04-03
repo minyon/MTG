@@ -118,6 +118,58 @@ def color_identity_label(colors: list[str]) -> str:
     return "/".join(names) + f"  ({' '.join(ordered)})"
 
 
+def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
+               deck_colors: set[str], not_found: list[dict],
+               illegal: list[str], game_changer_hits: list[str]) -> Path:
+    """Write analysis results to meta.md in the deck directory."""
+    from datetime import date
+
+    color_label = color_identity_label(sorted(deck_colors, key=WUBRG.index))
+    lines = [
+        f"# {slug}",
+        f"",
+        f"## Overview",
+        f"",
+        f"| | |",
+        f"|---|---|",
+        f"| **Total cards** | {total} |",
+        f"| **Color identity** | {color_label} |",
+    ]
+
+    if commanders:
+        lines.append(f"| **Commander** | {', '.join(commanders)} |")
+
+    lines += ["", f"*Last analyzed: {date.today()}*", ""]
+
+    if not_found:
+        lines += [f"## Not Found on Scryfall", ""]
+        for c in not_found:
+            lines.append(f"- {c.get('name', c)}")
+        lines.append("")
+    else:
+        lines += ["## Validity", "", "All cards found on Scryfall.", ""]
+
+    if illegal:
+        lines += ["## Not Legal in Commander", ""]
+        for c in illegal:
+            lines.append(f"- {c.strip()}")
+        lines.append("")
+    else:
+        lines += ["## Legality", "", "All cards are Commander-legal.", ""]
+
+    if game_changer_hits:
+        lines += [f"## Game Changers ({len(game_changer_hits)})", ""]
+        for c in game_changer_hits:
+            lines.append(f"- {c.strip()}")
+        lines.append("")
+    else:
+        lines += ["## Game Changers", "", "None.", ""]
+
+    meta_path = deck_dir / "meta.md"
+    meta_path.write_text("\n".join(lines), encoding="utf-8")
+    return meta_path
+
+
 def resolve_deck_path(arg: str) -> Path:
     p = Path(arg)
     if p.suffix == ".txt" and p.exists():
@@ -190,7 +242,11 @@ def main():
     else:
         print(f"  No game changers in this deck.")
 
-    print()
+    meta_path = write_meta(
+        deck_path.parent, deck_path.parent.name, commanders,
+        total, deck_colors, not_found, illegal, game_changer_hits,
+    )
+    print(f"\n  meta.md written → {meta_path}\n")
 
 
 if __name__ == "__main__":
