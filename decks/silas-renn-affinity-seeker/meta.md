@@ -6,9 +6,10 @@
 |---|---|
 | **Total cards** | 100 |
 | **Color identity** | Blue/Black  (U B) |
+| **Estimated price** | $408.54 |
 | **Commander** | Silas Renn, Seeker Adept |
 
-*Last analyzed: 2026-04-03*
+*Last analyzed: 2026-04-04*
 
 ## Validity
 

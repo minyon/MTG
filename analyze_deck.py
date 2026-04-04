@@ -18,6 +18,7 @@ import json
 import re
 import sys
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -80,6 +81,28 @@ def fetch_cards_collection(names: list[str]) -> tuple[list[dict], list[dict]]:
     return found, not_found
 
 
+def card_price(card: dict) -> float | None:
+    """Return the best available USD price for a card, or None."""
+    prices = card.get("prices", {})
+    for key in ("usd", "usd_foil", "usd_etched"):
+        val = prices.get(key)
+        if val is not None:
+            return float(val)
+    return None
+
+
+def fetch_cheapest_printing(name: str) -> dict | None:
+    """Find the cheapest paper printing of a card that has a USD price."""
+    q = urllib.parse.quote(f'!"{name}" has:usdprice')
+    url = f"https://api.scryfall.com/cards/search?q={q}&order=usd&dir=asc"
+    try:
+        result = scryfall_get(url)
+        data = result.get("data", [])
+        return data[0] if data else None
+    except Exception:
+        return None
+
+
 def parse_decklist(path: Path) -> tuple[dict[str, int], list[str]]:
     """
     Parse a plain text decklist.
@@ -120,11 +143,13 @@ def color_identity_label(colors: list[str]) -> str:
 
 def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
                deck_colors: set[str], not_found: list[dict],
-               illegal: list[str], game_changer_hits: list[str]) -> Path:
+               illegal: list[str], game_changer_hits: list[str],
+               price_total: float | None, no_price: list[str]) -> Path:
     """Write analysis results to meta.md in the deck directory."""
     from datetime import date
 
     color_label = color_identity_label(sorted(deck_colors, key=WUBRG.index))
+    price_str = f"${price_total:.2f}" if price_total is not None else "N/A"
     lines = [
         f"# {slug}",
         f"",
@@ -132,14 +157,18 @@ def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
         f"",
         f"| | |",
         f"|---|---|",
-        f"| **Total cards** | {total} |",
+        f"| **Total cards** | {total}{' ⚠️ incomplete' if total < 100 else ''} |",
         f"| **Color identity** | {color_label} |",
+        f"| **Estimated price** | {price_str} |",
     ]
 
     if commanders:
         lines.append(f"| **Commander** | {', '.join(commanders)} |")
 
     lines += ["", f"*Last analyzed: {date.today()}*", ""]
+
+    if total < 100:
+        lines += ["## Incomplete Deck", "", f"This deck has {total}/100 cards. {100 - total} card(s) still needed.", ""]
 
     if not_found:
         lines += [f"## Not Found on Scryfall", ""]
@@ -164,6 +193,12 @@ def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
         lines.append("")
     else:
         lines += ["## Game Changers", "", "None.", ""]
+
+    if no_price:
+        lines += ["## No Price Data", ""]
+        for c in no_price:
+            lines.append(f"- {c}")
+        lines.append("")
 
     meta_path = deck_dir / "meta.md"
     meta_path.write_text("\n".join(lines), encoding="utf-8")
@@ -200,10 +235,12 @@ def main():
     print(f"Fetching {len(unique_names)} cards from Scryfall ...\n")
     found_cards, not_found = fetch_cards_collection(unique_names)
 
-    # Build color identity (union across all cards)
+    # Build color identity, legality, price, and game changer data
     deck_colors: set[str] = set()
     illegal: list[str] = []
     game_changer_hits: list[str] = []
+    price_total: float = 0.0
+    no_price: list[str] = []
 
     for card in found_cards:
         deck_colors.update(card.get("color_identity", []))
@@ -213,13 +250,36 @@ def main():
         if card["name"] in game_changers:
             game_changer_hits.append(f"  {card['name']}")
 
+        if "Basic Land" in card.get("type_line", ""):
+            unit_price = 0.0
+        else:
+            unit_price = card_price(card)
+            if unit_price is None:
+                fallback = fetch_cheapest_printing(card["name"])
+                if fallback:
+                    unit_price = card_price(fallback)
+                time.sleep(0.1)
+        qty = cards.get(card["name"], 1)
+        if unit_price is not None:
+            price_total += unit_price * qty
+        else:
+            no_price.append(card["name"])
+
+    price_display = f"${price_total:.2f}" if found_cards else "N/A"
+
     # --- Output ---
     print(f"{'='*50}")
     print(f"  {deck_path.parent.name}")
     print(f"{'='*50}")
 
-    print(f"\n  Total cards   : {total}")
+    incomplete_note = f"  ⚠  INCOMPLETE: {total}/100 cards ({100 - total} still needed)" if total < 100 else ""
+    print(f"\n  Total cards   : {total}{' (incomplete)' if total < 100 else ''}")
+    if incomplete_note:
+        print(incomplete_note)
     print(f"  Color identity: {color_identity_label(sorted(deck_colors, key=WUBRG.index))}")
+    print(f"  Est. price    : {price_display}")
+    if no_price:
+        print(f"  No price data : {len(no_price)} card(s)")
 
     if not_found:
         print(f"\n  NOT FOUND ({len(not_found)}) — possible typos:")
@@ -245,6 +305,7 @@ def main():
     meta_path = write_meta(
         deck_path.parent, deck_path.parent.name, commanders,
         total, deck_colors, not_found, illegal, game_changer_hits,
+        price_total if found_cards else None, no_price,
     )
     print(f"\n  meta.md written → {meta_path}\n")
 

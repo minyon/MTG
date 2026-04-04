@@ -6,9 +6,10 @@
 |---|---|
 | **Total cards** | 100 |
 | **Color identity** | Red  (R) |
+| **Estimated price** | $369.06 |
 | **Commander** | Norin the Wary |
 
-*Last analyzed: 2026-04-03*
+*Last analyzed: 2026-04-04*
 
 ## Validity
 
