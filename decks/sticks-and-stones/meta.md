@@ -4,25 +4,32 @@
 
 | | |
 |---|---|
-| **Total cards** | 12 ⚠️ incomplete |
+| **Total cards** | 15 ⚠️ incomplete |
 | **Color identity** | Black/Green  (B G) |
-| **Estimated price** | $11.77 |
+| **Estimated price** | $13.11 |
 | **Commander** | Old Stickfingers |
 
 *Last analyzed: 2026-04-04*
 
 ## Incomplete Deck
 
-This deck has 12/100 cards. 88 card(s) still needed.
+This deck has 15/100 cards. 85 card(s) still needed.
 
 ## Validity
 
 All cards found on Scryfall.
 
-## Not Legal in Commander
+## Legality
 
-- Over My Dead Bodies  [not_legal]
+All cards are Commander-legal.
 
 ## Game Changers
 
 None.
+
+## Sideboard (1 cards  —  $0.30)
+
+- 1 Over My Dead Bodies
+
+**Not legal in Commander:**
+- Over My Dead Bodies  [not_legal]

@@ -48,22 +48,34 @@ def is_deckstats(text: str) -> bool:
     return bool(re.search(r"^(Main|Sideboard)\s*$", text, re.MULTILINE))
 
 
-def parse_moxfield(text: str) -> tuple[list[str], list[str]]:
+def parse_moxfield(text: str) -> tuple[list[str], list[str], list[str]]:
     """
-    Moxfield format: flat card list, commander(s) after final blank line.
-    Returns (mainboard_lines, commander_lines).
+    Moxfield format: flat card list, optional SIDEBOARD: section, commander(s) after final blank line.
+    Returns (mainboard_lines, commander_lines, sideboard_lines).
     """
     sections = re.split(r"\n\s*\n", text.strip())
 
-    if len(sections) == 1:
-        return sections[0].splitlines(), []
+    # Pull out the SIDEBOARD: section if present
+    sideboard: list[str] = []
+    remaining: list[str] = []
+    for section in sections:
+        lines = section.splitlines()
+        if lines and re.match(r"^SIDEBOARD\s*:", lines[0], re.IGNORECASE):
+            sideboard = [l for l in lines[1:] if l.strip()]
+        else:
+            remaining.append(section)
 
-    commanders = [l for l in sections[-1].splitlines() if l.strip()]
-    mainboard = [l for s in sections[:-1] for l in s.splitlines() if l.strip()]
-    return mainboard, commanders
+    if len(remaining) == 0:
+        return [], [], sideboard
+    if len(remaining) == 1:
+        return remaining[0].splitlines(), [], sideboard
+
+    commanders = [l for l in remaining[-1].splitlines() if l.strip()]
+    mainboard = [l for s in remaining[:-1] for l in s.splitlines() if l.strip()]
+    return mainboard, commanders, sideboard
 
 
-def parse_deckstats(text: str) -> tuple[list[str], list[str]]:
+def parse_deckstats(text: str) -> tuple[list[str], list[str], list[str]]:
     """
     Deckstats format:
       Main
@@ -72,10 +84,12 @@ def parse_deckstats(text: str) -> tuple[list[str], list[str]]:
 
       Sideboard
       SB: 1 Commander Name # !Commander
-    Returns (mainboard_lines, commander_lines) in plain `N Card Name` format.
+      SB: 1 Other Card
+    Returns (mainboard_lines, commander_lines, sideboard_lines) in plain `N Card Name` format.
     """
     mainboard: list[str] = []
     commanders: list[str] = []
+    sideboard: list[str] = []
     section = None
 
     for line in text.splitlines():
@@ -92,23 +106,27 @@ def parse_deckstats(text: str) -> tuple[list[str], list[str]]:
         if section == "main":
             mainboard.append(line)
         elif section == "sideboard":
-            # Strip "SB: " prefix and any "# ..." annotation
             card = re.sub(r"^SB:\s*", "", line)
+            annotation = re.search(r"#\s*(.+)$", card)
             card = re.sub(r"\s*#.*$", "", card).strip()
-            if card:
+            if not card:
+                continue
+            if annotation and "Commander" in annotation.group(1):
                 commanders.append(card)
+            else:
+                sideboard.append(card)
 
-    return mainboard, commanders
+    return mainboard, commanders, sideboard
 
 
-def parse_decklist(src: Path) -> tuple[list[str], list[str]]:
+def parse_decklist(src: Path) -> tuple[list[str], list[str], list[str]]:
     text = src.read_text(encoding="utf-8")
     if is_deckstats(text):
         return parse_deckstats(text)
     return parse_moxfield(text)
 
 
-def to_forge_dck(slug: str, mainboard: list[str], commanders: list[str]) -> str:
+def to_forge_dck(slug: str, mainboard: list[str], commanders: list[str], sideboard: list[str]) -> str:
     """Format a deck as an MTG Forge .dck file."""
     key_cards = ", ".join(
         re.sub(r"^\d+\s+", "", c).strip() for c in commanders
@@ -120,30 +138,35 @@ def to_forge_dck(slug: str, mainboard: list[str], commanders: list[str]) -> str:
     lines.append("[Main]")
     lines.extend(mainboard)
     lines.extend(commanders)
+    if sideboard:
+        lines.append("[Sideboard]")
+        lines.extend(sideboard)
     return "\n".join(lines) + "\n"
 
 
-def to_moxfield_txt(mainboard: list[str], commanders: list[str]) -> str:
+def to_moxfield_txt(mainboard: list[str], commanders: list[str], sideboard: list[str]) -> str:
     """Format a deck as Moxfield-compatible plain text."""
     parts = ["\n".join(mainboard)]
     if commanders:
         parts.append("\n".join(commanders))
-    return "\n\n".join(parts) + "\n"
+    result = "\n\n".join(parts) + "\n"
+    if sideboard:
+        result += "\nSIDEBOARD:\n" + "\n".join(sideboard) + "\n"
+    return result
 
 
 def import_deck(src: Path, deck_name: str | None = None) -> None:
     slug = slugify(deck_name) if deck_name else deck_slug_from_filename(src.stem)
-    mainboard, commanders = parse_decklist(src)
+    mainboard, commanders, sideboard = parse_decklist(src)
 
     dest_dir = DECKS_DIR / slug
     dest_dir.mkdir(parents=True, exist_ok=True)
 
     txt_dest = dest_dir / "deck.txt"
-    txt_dest.write_text(to_moxfield_txt(mainboard, commanders), encoding="utf-8")
+    txt_dest.write_text(to_moxfield_txt(mainboard, commanders, sideboard), encoding="utf-8")
 
-    dck_content = to_forge_dck(slug, mainboard, commanders)
     dck_dest = dest_dir / "deck.dck"
-    dck_dest.write_text(dck_content, encoding="utf-8")
+    dck_dest.write_text(to_forge_dck(slug, mainboard, commanders, sideboard), encoding="utf-8")
 
     print(f"Imported '{slug}'")
     print(f"  plain text → {txt_dest}")
@@ -151,6 +174,9 @@ def import_deck(src: Path, deck_name: str | None = None) -> None:
     if commanders:
         commander_names = [re.sub(r"^\d+\s+", "", c).strip() for c in commanders]
         print(f"  commander  : {', '.join(commander_names)}")
+    if sideboard:
+        sb_names = [re.sub(r"^\d+\s+", "", c).strip() for c in sideboard]
+        print(f"  sideboard  : {', '.join(sb_names)}")
 
 
 def process_import_folder() -> None:

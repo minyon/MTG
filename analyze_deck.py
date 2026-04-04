@@ -103,13 +103,25 @@ def fetch_cheapest_printing(name: str) -> dict | None:
         return None
 
 
-def parse_decklist(path: Path) -> tuple[dict[str, int], list[str]]:
+def parse_decklist(path: Path) -> tuple[dict[str, int], list[str], dict[str, int]]:
     """
     Parse a plain text decklist.
-    Returns (card_name -> quantity, commanders).
-    Commanders are cards after the final blank line.
+    Returns (card_name -> quantity, commanders, sideboard_name -> quantity).
+    Sideboard is after the SIDEBOARD: marker; commanders after the final blank line.
     """
     text = path.read_text(encoding="utf-8")
+
+    # Split off sideboard block
+    sideboard: dict[str, int] = {}
+    sb_split = re.split(r"\nSIDEBOARD:\n", text, maxsplit=1)
+    if len(sb_split) == 2:
+        text = sb_split[0]
+        for line in sb_split[1].splitlines():
+            m = re.match(r"^(\d+)\s+(.+)$", line.strip())
+            if m:
+                qty, name = int(m.group(1)), m.group(2).strip()
+                sideboard[name] = sideboard.get(name, 0) + qty
+
     sections = re.split(r"\n\s*\n", text.strip())
 
     def parse_lines(lines: list[str]) -> dict[str, int]:
@@ -123,14 +135,14 @@ def parse_decklist(path: Path) -> tuple[dict[str, int], list[str]]:
         return cards
 
     if len(sections) == 1:
-        return parse_lines(sections[0].splitlines()), []
+        return parse_lines(sections[0].splitlines()), [], sideboard
 
     commander_lines = [l for l in sections[-1].splitlines() if l.strip()]
     main_lines = [l for s in sections[:-1] for l in s.splitlines()]
 
     commanders = [re.sub(r"^\d+\s+", "", l).strip() for l in commander_lines]
     cards = parse_lines(main_lines + commander_lines)
-    return cards, commanders
+    return cards, commanders, sideboard
 
 
 def color_identity_label(colors: list[str]) -> str:
@@ -144,7 +156,9 @@ def color_identity_label(colors: list[str]) -> str:
 def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
                deck_colors: set[str], not_found: list[dict],
                illegal: list[str], game_changer_hits: list[str],
-               price_total: float | None, no_price: list[str]) -> Path:
+               price_total: float | None, no_price: list[str],
+               sideboard: dict[str, int], sb_illegal: list[str],
+               sb_price: float | None) -> Path:
     """Write analysis results to meta.md in the deck directory."""
     from datetime import date
 
@@ -200,6 +214,18 @@ def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
             lines.append(f"- {c}")
         lines.append("")
 
+    if sideboard:
+        sb_price_str = f"${sb_price:.2f}" if sb_price is not None else "N/A"
+        lines += [f"## Sideboard ({sum(sideboard.values())} cards  —  {sb_price_str})", ""]
+        for name, qty in sideboard.items():
+            lines.append(f"- {qty} {name}")
+        if sb_illegal:
+            lines.append("")
+            lines.append("**Not legal in Commander:**")
+            for c in sb_illegal:
+                lines.append(f"- {c.strip()}")
+        lines.append("")
+
     meta_path = deck_dir / "meta.md"
     meta_path.write_text("\n".join(lines), encoding="utf-8")
     return meta_path
@@ -223,7 +249,7 @@ def main():
         sys.exit(1)
 
     deck_path = resolve_deck_path(sys.argv[1])
-    cards, commanders = parse_decklist(deck_path)
+    cards, commanders, sideboard = parse_decklist(deck_path)
 
     total = sum(cards.values())
     unique_names = list(cards.keys())
@@ -267,6 +293,29 @@ def main():
 
     price_display = f"${price_total:.2f}" if found_cards else "N/A"
 
+    # --- Sideboard ---
+    sb_illegal: list[str] = []
+    sb_price: float = 0.0
+    if sideboard:
+        sb_names = list(sideboard.keys())
+        sb_found, _ = fetch_cards_collection(sb_names)
+        for card in sb_found:
+            legality = card.get("legalities", {}).get("commander", "unknown")
+            if legality in ("banned", "not_legal"):
+                sb_illegal.append(f"  {card['name']}  [{legality}]")
+            if "Basic Land" in card.get("type_line", ""):
+                unit_price = 0.0
+            else:
+                unit_price = card_price(card)
+                if unit_price is None:
+                    fallback = fetch_cheapest_printing(card["name"])
+                    if fallback:
+                        unit_price = card_price(fallback)
+                    time.sleep(0.1)
+            qty = sideboard.get(card["name"], 1)
+            if unit_price is not None:
+                sb_price += unit_price * qty
+
     # --- Output ---
     print(f"{'='*50}")
     print(f"  {deck_path.parent.name}")
@@ -302,10 +351,18 @@ def main():
     else:
         print(f"  No game changers in this deck.")
 
+    if sideboard:
+        print(f"\n  SIDEBOARD ({sum(sideboard.values())} cards  —  ${sb_price:.2f}):")
+        for name, qty in sideboard.items():
+            print(f"    {qty} {name}")
+        if sb_illegal:
+            print(f"  Not legal: {', '.join(c.strip() for c in sb_illegal)}")
+
     meta_path = write_meta(
         deck_path.parent, deck_path.parent.name, commanders,
         total, deck_colors, not_found, illegal, game_changer_hits,
         price_total if found_cards else None, no_price,
+        sideboard, sb_illegal, sb_price if sideboard else None,
     )
     print(f"\n  meta.md written → {meta_path}\n")
 
