@@ -91,6 +91,46 @@ def card_price(card: dict) -> float | None:
     return None
 
 
+def card_mana_cost(card: dict) -> str:
+    """Return mana cost string, checking card_faces for double-faced cards."""
+    cost = card.get("mana_cost", "")
+    if not cost and "card_faces" in card:
+        cost = card["card_faces"][0].get("mana_cost", "")
+    return cost or "—"
+
+
+def type_group(type_line: str) -> int:
+    """Return a sort key for grouping cards by broad type."""
+    t = type_line or ""
+    if "Creature" in t:
+        return 0
+    if "Planeswalker" in t:
+        return 1
+    if "Instant" in t:
+        return 2
+    if "Sorcery" in t:
+        return 3
+    if "Artifact" in t:
+        return 4
+    if "Enchantment" in t:
+        return 5
+    if "Land" in t:
+        return 6
+    return 7
+
+
+TYPE_GROUP_LABELS = {
+    0: "Creatures",
+    1: "Planeswalkers",
+    2: "Instants",
+    3: "Sorceries",
+    4: "Artifacts",
+    5: "Enchantments",
+    6: "Lands",
+    7: "Other",
+}
+
+
 def fetch_cheapest_printing(name: str) -> dict | None:
     """Find the cheapest paper printing of a card that has a USD price."""
     q = urllib.parse.quote(f'!"{name}" has:usdprice')
@@ -158,7 +198,8 @@ def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
                illegal: list[str], game_changer_hits: list[str],
                price_total: float | None, no_price: list[str],
                sideboard: dict[str, int], sb_illegal: list[str],
-               sb_price: float | None) -> Path:
+               sb_price: float | None,
+               card_meta: list[dict] | None = None) -> Path:
     """Write analysis results to meta.md in the deck directory."""
     from datetime import date
 
@@ -226,6 +267,31 @@ def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
                 lines.append(f"- {c.strip()}")
         lines.append("")
 
+    if card_meta:
+        commander_set = set(commanders)
+        # Commanders first, then remaining cards grouped by type
+        cmd_rows = [m for m in card_meta if m["name"] in commander_set]
+        other_rows = [m for m in card_meta if m["name"] not in commander_set]
+        other_rows.sort(key=lambda m: (type_group(m["type_line"]), m["name"]))
+
+        lines += ["## Card List", ""]
+        if cmd_rows:
+            lines += ["### Commander", "", "| Qty | Name | Cost | Type | Rarity |", "|-----|------|------|------|--------|"]
+            for m in sorted(cmd_rows, key=lambda m: m["name"]):
+                lines.append(f"| {m['qty']} | {m['name']} | {m['mana_cost']} | {m['type_line']} | {m['rarity'].capitalize()} |")
+            lines.append("")
+
+        current_group = None
+        for m in other_rows:
+            g = type_group(m["type_line"])
+            if g != current_group:
+                if current_group is not None:
+                    lines.append("")
+                current_group = g
+                lines += [f"### {TYPE_GROUP_LABELS[g]}", "", "| Qty | Name | Cost | Type | Rarity |", "|-----|------|------|------|--------|"]
+            lines.append(f"| {m['qty']} | {m['name']} | {m['mana_cost']} | {m['type_line']} | {m['rarity'].capitalize()} |")
+        lines.append("")
+
     meta_path = deck_dir / "meta.md"
     meta_path.write_text("\n".join(lines), encoding="utf-8")
     return meta_path
@@ -261,12 +327,13 @@ def main():
     print(f"Fetching {len(unique_names)} cards from Scryfall ...\n")
     found_cards, not_found = fetch_cards_collection(unique_names)
 
-    # Build color identity, legality, price, and game changer data
+    # Build color identity, legality, price, game changer, and card metadata
     deck_colors: set[str] = set()
     illegal: list[str] = []
     game_changer_hits: list[str] = []
     price_total: float = 0.0
     no_price: list[str] = []
+    card_meta: list[dict] = []
 
     for card in found_cards:
         deck_colors.update(card.get("color_identity", []))
@@ -275,6 +342,13 @@ def main():
             illegal.append(f"  {card['name']}  [{legality}]")
         if card["name"] in game_changers:
             game_changer_hits.append(f"  {card['name']}")
+        card_meta.append({
+            "name": card["name"],
+            "type_line": card.get("type_line", ""),
+            "mana_cost": card_mana_cost(card),
+            "rarity": card.get("rarity", ""),
+            "qty": cards.get(card["name"], 1),
+        })
 
         if "Basic Land" in card.get("type_line", ""):
             unit_price = 0.0
@@ -363,6 +437,7 @@ def main():
         total, deck_colors, not_found, illegal, game_changer_hits,
         price_total if found_cards else None, no_price,
         sideboard, sb_illegal, sb_price if sideboard else None,
+        card_meta=card_meta,
     )
     print(f"\n  meta.md written → {meta_path}\n")
 

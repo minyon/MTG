@@ -34,3 +34,38 @@ None.
 
 **Not legal in Commander:**
 - Frankie Peanuts  [not_legal]
+
+## Card List
+
+### Commander
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Medomai the Ageless | {4}{W}{U} | Legendary Creature — Sphinx | Mythic |
+
+### Creatures
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Braids, Conjurer Adept | {2}{U}{U} | Legendary Creature — Human Wizard | Rare |
+| 1 | Emrakul, the Promised End | {13} | Legendary Creature — Eldrazi | Mythic |
+| 1 | Lyse Hext | {1}{W}{U} | Legendary Creature — Human Rebel Monk | Rare |
+| 1 | Taigam, Ojutai Master | {2}{W}{U} | Legendary Creature — Human Monk | Rare |
+| 1 | Victory's Envoy | {3}{W}{W} | Creature — Human Cleric | Rare |
+
+### Sorceries
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Approach of the Second Sun | {6}{W} | Sorcery | Rare |
+| 1 | Part the Waterveil | {4}{U}{U} | Sorcery | Mythic |
+| 1 | Walk the Aeons | {4}{U}{U} | Sorcery | Rare |
+
+### Enchantments
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Crescendo of War | {3}{W} | Enchantment | Rare |
+| 1 | Extravagant Replication | {4}{U}{U} | Enchantment | Rare |
+| 1 | Mechanized Production | {2}{U}{U} | Enchantment — Aura | Mythic |
+| 1 | Second Chance | {2}{U} | Enchantment | Rare |
