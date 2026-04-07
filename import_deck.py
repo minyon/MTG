@@ -126,21 +126,51 @@ def parse_decklist(src: Path) -> tuple[list[str], list[str], list[str]]:
     return parse_moxfield(text)
 
 
+def parse_forge_dck(src: Path) -> tuple[str | None, list[str], list[str], list[str]]:
+    """
+    Parse an MTG Forge .dck file.
+    Returns (deck_name, mainboard_lines, commander_lines, sideboard_lines).
+    Strips |SET|[NUM] collector suffixes from card names.
+    """
+    deck_name: str | None = None
+    mainboard: list[str] = []
+    commanders: list[str] = []
+    sideboard: list[str] = []
+    section: str | None = None
+
+    for line in src.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1].lower()
+            continue
+        if section == "metadata":
+            if line.lower().startswith("name="):
+                deck_name = line[5:].strip()
+            continue
+        # Strip collector suffix: "1 Card Name|SET|[NUM]" → "1 Card Name"
+        card_line = re.sub(r"\|[^|]+\|\[[^\]]*\]$", "", line).strip()
+        if section == "main":
+            mainboard.append(card_line)
+        elif section == "sideboard":
+            sideboard.append(card_line)
+        elif section == "commander":
+            commanders.append(card_line)
+
+    return deck_name, mainboard, commanders, sideboard
+
+
 def to_forge_dck(slug: str, mainboard: list[str], commanders: list[str], sideboard: list[str]) -> str:
     """Format a deck as an MTG Forge .dck file."""
-    key_cards = ", ".join(
-        re.sub(r"^\d+\s+", "", c).strip() for c in commanders
-    )
-
-    lines = ["[metadata]", f"Name={slug}"]
-    if key_cards:
-        lines.append(f"KeyCards={key_cards}")
-    lines.append("[Main]")
+    lines = ["[metadata]", f"Name={slug}", "[Main]"]
     lines.extend(mainboard)
-    lines.extend(commanders)
     if sideboard:
         lines.append("[Sideboard]")
         lines.extend(sideboard)
+    if commanders:
+        lines.append("[Commander]")
+        lines.extend(commanders)
     return "\n".join(lines) + "\n"
 
 
@@ -156,8 +186,12 @@ def to_moxfield_txt(mainboard: list[str], commanders: list[str], sideboard: list
 
 
 def import_deck(src: Path, deck_name: str | None = None) -> None:
-    slug = slugify(deck_name) if deck_name else deck_slug_from_filename(src.stem)
-    mainboard, commanders, sideboard = parse_decklist(src)
+    if src.suffix == ".dck":
+        forge_name, mainboard, commanders, sideboard = parse_forge_dck(src)
+        slug = slugify(deck_name) if deck_name else (slugify(forge_name) if forge_name else deck_slug_from_filename(src.stem))
+    else:
+        slug = slugify(deck_name) if deck_name else deck_slug_from_filename(src.stem)
+        mainboard, commanders, sideboard = parse_decklist(src)
 
     dest_dir = DECKS_DIR / slug
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -181,7 +215,7 @@ def import_deck(src: Path, deck_name: str | None = None) -> None:
 
 def process_import_folder() -> None:
     IMPORT_DIR.mkdir(exist_ok=True)
-    files = sorted(IMPORT_DIR.glob("*.txt"))
+    files = sorted(IMPORT_DIR.glob("*.txt")) + sorted(IMPORT_DIR.glob("*.dck"))
 
     if not files:
         print(f"No .txt files found in {IMPORT_DIR}")

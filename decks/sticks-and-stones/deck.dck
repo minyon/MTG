@@ -1,6 +1,5 @@
 [metadata]
 Name=sticks-and-stones
-KeyCards=Old Stickfingers
 [Main]
 1 Aftermath Analyst
 1 Dread Return
@@ -16,6 +15,7 @@ KeyCards=Old Stickfingers
 1 Timeless Witness
 1 Varolz, the Scar-Striped
 1 Yargle and Multani
-1 Old Stickfingers
 [Sideboard]
 1 Over My Dead Bodies
+[Commander]
+1 Old Stickfingers

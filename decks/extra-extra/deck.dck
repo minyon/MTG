@@ -1,6 +1,5 @@
 [metadata]
 Name=extra-extra
-KeyCards=Medomai the Ageless
 [Main]
 1 Approach of the Second Sun
 1 Braids, Conjurer Adept
@@ -14,7 +13,8 @@ KeyCards=Medomai the Ageless
 1 Taigam, Ojutai Master
 1 Victory's Envoy
 1 Walk the Aeons
-1 Medomai the Ageless
 [Sideboard]
 1 Frankie Peanuts
 1 Timesifter
+[Commander]
+1 Medomai the Ageless

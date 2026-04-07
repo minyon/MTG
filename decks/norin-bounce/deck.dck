@@ -1,6 +1,5 @@
 [metadata]
 Name=norin-bounce
-KeyCards=Norin the Wary
 [Main]
 1 Agate Instigator
 1 Anger
@@ -71,4 +70,7 @@ KeyCards=Norin the Wary
 1 War Room
 1 Warstorm Surge
 1 Witty Roastmaster
+[Sideboard]
+1 Combustible Gearhulk
+[Commander]
 1 Norin the Wary

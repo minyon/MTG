@@ -1,6 +1,5 @@
 [metadata]
 Name=explosive-draw
-KeyCards=Niv-Mizzet, Visionary
 [Main]
 1 Archmage of Runes
 1 Explosion of Riches
@@ -17,6 +16,7 @@ KeyCards=Niv-Mizzet, Visionary
 1 The Locust God
 1 Truth or Consequences
 1 Zara, Renegade Recruiter
-1 Niv-Mizzet, Visionary
 [Sideboard]
 1 Rings a Bell
+[Commander]
+1 Niv-Mizzet, Visionary

@@ -1,6 +1,5 @@
 [metadata]
 Name=ctrl-alt-del
-KeyCards=The Cyber-Controller
 [Main]
 1 Armix, Filigree Thrasher
 1 Darksteel Juggernaut
@@ -15,6 +14,7 @@ KeyCards=The Cyber-Controller
 1 Sygg, River Cutthroat
 1 Technomancer
 1 Triarch Stalker
-1 The Cyber-Controller
 [Sideboard]
 1 D00-DL, Caricaturist
+[Commander]
+1 The Cyber-Controller

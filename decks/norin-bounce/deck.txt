@@ -69,3 +69,6 @@
 1 Witty Roastmaster
 
 1 Norin the Wary
+
+SIDEBOARD:
+1 Combustible Gearhulk
