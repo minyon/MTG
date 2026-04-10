@@ -4,16 +4,16 @@
 
 | | |
 |---|---|
-| **Total cards** | 15 ⚠️ incomplete |
+| **Total cards** | 46 ⚠️ incomplete |
 | **Color identity** | Black/Green  (B G) |
-| **Estimated price** | $13.11 |
+| **Estimated price** | $15.59 |
 | **Commander** | Old Stickfingers |
 
-*Last analyzed: 2026-04-04*
+*Last analyzed: 2026-04-09*
 
 ## Incomplete Deck
 
-This deck has 15/100 cards. 85 card(s) still needed.
+This deck has 46/100 cards. 54 card(s) still needed.
 
 ## Validity
 
@@ -70,3 +70,22 @@ None.
 |-----|------|------|------|--------|
 | 1 | Dread Return | {2}{B}{B} | Sorcery | Common |
 | 1 | Rise of the Dark Realms | {7}{B}{B} | Sorcery | Mythic |
+
+### Artifacts
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Commander's Sphere | {3} | Artifact | Common |
+
+### Lands
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Command Tower | — | Land | Common |
+| 1 | Evolving Wilds | — | Land | Common |
+| 12 | Forest | — | Basic Land — Forest | Common |
+| 1 | Golgari Rot Farm | — | Land | Uncommon |
+| 1 | Jungle Hollow | — | Land | Common |
+| 12 | Swamp | — | Basic Land — Swamp | Common |
+| 1 | Terramorphic Expanse | — | Land | Common |
+| 1 | Woodland Cemetery | — | Land | Rare |

@@ -12,6 +12,15 @@
 1 Timeless Witness
 1 Varolz, the Scar-Striped
 1 Yargle and Multani
+1 Commander's Sphere
+1 Command Tower
+1 Woodland Cemetery
+1 Golgari Rot Farm
+1 Jungle Hollow
+1 Terramorphic Expanse
+1 Evolving Wilds
+12 Forest
+12 Swamp
 
 1 Old Stickfingers
 

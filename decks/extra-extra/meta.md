@@ -4,16 +4,16 @@
 
 | | |
 |---|---|
-| **Total cards** | 13 ⚠️ incomplete |
+| **Total cards** | 44 ⚠️ incomplete |
 | **Color identity** | White/Blue  (W U) |
-| **Estimated price** | $42.51 |
+| **Estimated price** | $45.21 |
 | **Commander** | Medomai the Ageless |
 
-*Last analyzed: 2026-04-04*
+*Last analyzed: 2026-04-09*
 
 ## Incomplete Deck
 
-This deck has 13/100 cards. 87 card(s) still needed.
+This deck has 44/100 cards. 56 card(s) still needed.
 
 ## Validity
 
@@ -27,7 +27,7 @@ All cards are Commander-legal.
 
 None.
 
-## Sideboard (2 cards  —  $2.57)
+## Sideboard (2 cards  —  $2.58)
 
 - 1 Frankie Peanuts
 - 1 Timesifter
@@ -61,6 +61,12 @@ None.
 | 1 | Part the Waterveil | {4}{U}{U} | Sorcery | Mythic |
 | 1 | Walk the Aeons | {4}{U}{U} | Sorcery | Rare |
 
+### Artifacts
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Commander's Sphere | {3} | Artifact | Common |
+
 ### Enchantments
 
 | Qty | Name | Cost | Type | Rarity |
@@ -69,3 +75,16 @@ None.
 | 1 | Extravagant Replication | {4}{U}{U} | Enchantment | Rare |
 | 1 | Mechanized Production | {2}{U}{U} | Enchantment — Aura | Mythic |
 | 1 | Second Chance | {2}{U} | Enchantment | Rare |
+
+### Lands
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Command Tower | — | Land | Common |
+| 1 | Evolving Wilds | — | Land | Common |
+| 1 | Glacial Fortress | — | Land | Rare |
+| 10 | Island | — | Basic Land — Island | Common |
+| 14 | Plains | — | Basic Land — Plains | Common |
+| 1 | Port Town | — | Land | Rare |
+| 1 | Terramorphic Expanse | — | Land | Common |
+| 1 | Tranquil Cove | — | Land | Common |

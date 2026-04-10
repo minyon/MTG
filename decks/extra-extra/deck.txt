@@ -10,6 +10,15 @@
 1 Taigam, Ojutai Master
 1 Victory's Envoy
 1 Walk the Aeons
+1 Commander's Sphere
+1 Command Tower
+1 Glacial Fortress
+1 Port Town
+1 Tranquil Cove
+1 Terramorphic Expanse
+1 Evolving Wilds
+14 Plains
+10 Island
 
 1 Medomai the Ageless
 
