@@ -4,4 +4,44 @@ Cards not to be added to any incomplete deck.
 
 - Sol Ring
 - Arcane Signet
-
+- Swords to Plowshares
+- Path to Exile
+- Beast Within
+- Blasphemous Act
+- Rampant Growth
+- Heroic Intervention
+- Dark Ritual
+- Rhystic Study
+- Demonic Tutor
+- Fierce Guardianship
+- Deflecting Swat
+- Teferi's Protection
+- Vampiric Tutor
+- Mana Drain
+- Deadly Rollick
+- Fellwar Stone
+- Mind Stone
+- Thought Vessel
+- Chromatic Lantern
+- Gilded Lotus
+- Mana Vault
+- Cultivate
+- Kodama's Reach
+- Farseek
+- Skyshroud Claim
+- Three Visits
+- Nature's Lore
+- Counterspell
+- Force of Will
+- Force of Negation
+- Pact of Negation
+- Necropotence
+- Sylvan Library
+- Consecrated Sphinx
+- Phyrexian Arena
+- Worldly Tutor
+- Enlightened Tutor
+- Mystical Tutor
+- Imperial Seal
+- Eternal Witness
+- Regrowth

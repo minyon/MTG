@@ -39,3 +39,5 @@ Two scripts, one deck storage convention:
 **Scryfall API notes** — Cards are fetched in batches of 75 via POST `/cards/collection`; a 0.1 s sleep separates batches. Basic lands are priced at $0; other cards fall back to a cheapest-printing search if no price is returned (each fallback also sleeps 0.1 s). `fetch_game_changer_names()` fetches only the first page of results — not paginated. Double-faced cards have no top-level `mana_cost`; `card_mana_cost()` falls back to `card_faces[0].mana_cost`.
 
 **`meta.md` card list** — Commanders are listed first, then remaining cards sorted by `type_group()` order: Creatures → Planeswalkers → Instants → Sorceries → Artifacts → Enchantments → Lands → Other. Color identity is always displayed in WUBRG order.
+
+**`working/` directory** — Manually maintained notes, not generated. `incomplete-decks.md` tracks decks with fewer than 100 cards; `exclude-list.md` lists cards to avoid adding to any incomplete deck.
