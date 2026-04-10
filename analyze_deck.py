@@ -24,6 +24,8 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
 DECKS_DIR = BASE_DIR / "decks"
+WORKING_DIR = BASE_DIR / "working"
+INCOMPLETE_PATH = WORKING_DIR / "incomplete-decks.md"
 
 SCRYFALL_COLLECTION = "https://api.scryfall.com/cards/collection"
 SCRYFALL_GAME_CHANGERS = "https://api.scryfall.com/cards/search?q=is%3Agame_changer"
@@ -297,6 +299,39 @@ def write_meta(deck_dir: Path, slug: str, commanders: list[str], total: int,
     return meta_path
 
 
+def update_incomplete_decks(slug: str, total: int) -> None:
+    """Update the incomplete-decks.md table row for this deck."""
+    if not INCOMPLETE_PATH.exists():
+        return
+
+    lines = INCOMPLETE_PATH.read_text(encoding="utf-8").splitlines()
+    row_re = re.compile(r"^\|\s*\[" + re.escape(slug) + r"\]")
+    new_row = f"| [{slug}](../decks/{slug}/deck.txt) | {total} | {100 - total} |"
+
+    # Remove existing row for this slug
+    filtered = [l for l in lines if not row_re.match(l)]
+
+    if total < 100:
+        # Collect existing data rows and add the new one, then sort by slug
+        data_rows = [(i, l) for i, l in enumerate(filtered) if l.startswith("| [")]
+        all_rows = sorted(
+            [l for _, l in data_rows] + [new_row],
+            key=lambda r: re.search(r"\[([^\]]+)\]", r).group(1),
+        )
+        if data_rows:
+            first = data_rows[0][0]
+            last = data_rows[-1][0]
+            filtered = filtered[:first] + all_rows + filtered[last + 1:]
+        else:
+            # No existing rows — insert after the separator line
+            for i, l in enumerate(filtered):
+                if l.startswith("|---"):
+                    filtered = filtered[:i + 1] + [new_row] + filtered[i + 1:]
+                    break
+
+    INCOMPLETE_PATH.write_text("\n".join(filtered) + "\n", encoding="utf-8")
+
+
 def resolve_deck_path(arg: str) -> Path:
     p = Path(arg)
     if p.suffix == ".txt" and p.exists():
@@ -439,6 +474,7 @@ def main():
         sideboard, sb_illegal, sb_price if sideboard else None,
         card_meta=card_meta,
     )
+    update_incomplete_decks(deck_path.parent.name, total)
     print(f"\n  meta.md written → {meta_path}\n")
 
 

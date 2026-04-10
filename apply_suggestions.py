@@ -12,6 +12,7 @@ Usage:
 """
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -163,7 +164,7 @@ def main():
         print(f"\nSkipped — already in deck ({len(skipped)}):")
         for name in skipped:
             print(f"  {name}")
-    print(f"\nRun: python3 analyze_deck.py {slug}")
+    subprocess.run([sys.executable, BASE_DIR / "analyze_deck.py", slug])
 
 
 if __name__ == "__main__":
