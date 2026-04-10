@@ -4,16 +4,16 @@
 
 | | |
 |---|---|
-| **Total cards** | 16 ⚠️ incomplete |
+| **Total cards** | 44 ⚠️ incomplete |
 | **Color identity** | Blue/Red  (U R) |
-| **Estimated price** | $31.04 |
+| **Estimated price** | $33.09 |
 | **Commander** | Niv-Mizzet, Visionary |
 
-*Last analyzed: 2026-04-04*
+*Last analyzed: 2026-04-09*
 
 ## Incomplete Deck
 
-This deck has 16/100 cards. 84 card(s) still needed.
+This deck has 44/100 cards. 56 card(s) still needed.
 
 ## Validity
 
@@ -27,7 +27,7 @@ All cards are Commander-legal.
 
 None.
 
-## Sideboard (1 cards  —  $0.13)
+## Sideboard (1 cards  —  $0.15)
 
 - 1 Rings a Bell
 
@@ -71,8 +71,26 @@ None.
 | 1 | Snort | {3}{R} | Sorcery | Rare |
 | 1 | Truth or Consequences | {2}{U}{R} | Sorcery | Uncommon |
 
+### Artifacts
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Commander's Sphere | {3} | Artifact | Common |
+
 ### Enchantments
 
 | Qty | Name | Cost | Type | Rarity |
 |-----|------|------|------|--------|
 | 1 | Rite of the Dragoncaller | {4}{R}{R} | Enchantment | Mythic |
+
+### Lands
+
+| Qty | Name | Cost | Type | Rarity |
+|-----|------|------|------|--------|
+| 1 | Command Tower | — | Land | Common |
+| 1 | Evolving Wilds | — | Land | Common |
+| 14 | Island | — | Basic Land — Island | Common |
+| 8 | Mountain | — | Basic Land — Mountain | Common |
+| 1 | Sulfur Falls | — | Land | Rare |
+| 1 | Swiftwater Cliffs | — | Land | Common |
+| 1 | Terramorphic Expanse | — | Land | Common |

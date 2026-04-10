@@ -66,6 +66,7 @@ def parse_marked(suggestions_path: Path) -> list[tuple[int, str, int]]:
             continue
         card_part = re.sub(r"^-\s*", "", stripped)
         card_part = re.sub(r"\s*\+$", "", card_part).strip()
+        card_part = re.sub(r"\s*[—–-]{1,2}\s.*$", "", card_part).strip()
         m = re.match(r"^(\d+)x\s+(.+)$", card_part)
         if m:
             marked.append((i, m.group(2).strip(), int(m.group(1))))
